@@ -4,6 +4,8 @@ A working prototype that watches a live interview meeting and continuously figur
 
 Built for the Sherlock internship challenge. Uses **Groq** (Llama 3.3 70B) as the LLM reasoning signal, with an automatic offline fallback so the system never breaks if the API key is missing or unreachable.
 
+# demo video url-https://drive.google.com/file/d/1hpJgcOZURM6zJPhCKyynXdRr1Wg3AdwN/view?usp=sharing
+
 ![Architecture](docs/architecture.png)
 
 ---
@@ -130,3 +132,4 @@ sherlock-candidate-id/
 ├── .env.example
 └── README.md
 ```
+
