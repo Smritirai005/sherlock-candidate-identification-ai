@@ -1,19 +1,3 @@
-"""
-groq_client.py
---------------
-Thin wrapper around Groq's chat-completions endpoint (OpenAI-compatible).
-
-Design choice: every call is wrapped so that a missing API key, a network
-error, or a malformed response NEVER crashes the pipeline. Sherlock is a
-real-time system — an LLM hiccup should degrade the signal, not take down
-the meeting. When Groq is unavailable we fall back to a cheap heuristic
-classifier (`_heuristic_role_classification`) so the demo still runs end
-to end offline.
-
-Set GROQ_API_KEY in your environment (or a .env file) to enable live calls.
-Get a free key at https://console.groq.com
-"""
-
 import os
 import json
 import re
@@ -33,14 +17,6 @@ def is_live() -> bool:
 
 
 def classify_utterance_role(utterance: str, context: list[str]) -> dict:
-    """
-    Ask: is this utterance more likely something an INTERVIEWER says
-    (asking questions, evaluating, leading the conversation) or something
-    a CANDIDATE says (answering, describing their own experience)?
-
-    Returns: {"role": "interviewer"|"candidate"|"unclear",
-              "confidence": 0..1, "reason": str}
-    """
     if not _api_key():
         return _heuristic_role_classification(utterance)
 
@@ -111,8 +87,6 @@ def _heuristic_role_classification(utterance: str) -> dict:
 
 
 def generate_explanation(participant_name: str, signal_summaries: list[str], confidence: float) -> str:
-    """Turn a list of raw signal reasons into one readable sentence or two.
-    Falls back to a simple template join if Groq is unavailable."""
     if not _api_key():
         return _template_explanation(participant_name, signal_summaries, confidence)
 

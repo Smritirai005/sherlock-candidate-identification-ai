@@ -1,11 +1,3 @@
-"""
-models.py
----------
-Plain data structures shared across the system. Keeping these dependency-free
-(dataclasses only) makes them easy to serialize over the WebSocket and easy
-to unit test in isolation.
-"""
-
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -21,8 +13,6 @@ class Role(str, Enum):
 
 @dataclass
 class CalendarInvite:
-    """External metadata Sherlock is told is available: the ground-truth
-    schedule for the interview, independent of what happens inside the call."""
     candidate_name: str
     candidate_email: Optional[str]
     interviewer_names: list[str]
@@ -31,9 +21,6 @@ class CalendarInvite:
 
 @dataclass
 class Participant:
-    """A single meeting participant, as seen by the video-conferencing
-    platform. Nothing here is trusted at face value — display_name in
-    particular is adversarial-prone (nicknames, device names, typos)."""
     participant_id: str
     display_name: str
     email: Optional[str] = None
@@ -48,14 +35,11 @@ class Participant:
 
 @dataclass
 class SignalResult:
-    """Output of one signal detector for one participant at one point in time.
-    Every signal must justify itself in plain English — that justification is
-    what powers the 'why did you pick this person' explanation."""
     signal_name: str
     participant_id: str
-    score: float          # 0.0 (strong evidence against) .. 1.0 (strong evidence for)
-    weight: float          # how much this signal counts right now (can change over time)
-    confidence_in_signal: float  # 0..1, how much evidence the signal itself has seen
+    score: float          
+    weight: float          
+    confidence_in_signal: float  
     reason: str
 
 
@@ -66,7 +50,7 @@ class ParticipantScore:
     display_name: str
     role_guess: Role
     confidence: float                      # 0..1, normalized across participants
-    raw_score: float                       # pre-normalization weighted sum
+    raw_score: float                       
     signals: list[SignalResult] = field(default_factory=list)
     explanation: str = ""
 
