@@ -7,6 +7,9 @@ GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 
+_role_cache: dict[str, dict] = {}
+
+
 def _api_key() -> str | None:
     return os.environ.get("GROQ_API_KEY")
 
@@ -17,8 +20,14 @@ def is_live() -> bool:
 
 
 def classify_utterance_role(utterance: str, context: list[str]) -> dict:
+  
+    if utterance in _role_cache:
+        return _role_cache[utterance]
+
     if not _api_key():
-        return _heuristic_role_classification(utterance)
+        result = _heuristic_role_classification(utterance)
+        _role_cache[utterance] = result
+        return result
 
     system_prompt = (
         "You are a signal detector inside Sherlock, an interview-fraud-detection "
@@ -57,16 +66,16 @@ def classify_utterance_role(utterance: str, context: list[str]) -> dict:
         text = re.sub(r"^```json|```$", "", text).strip()
         parsed = json.loads(text)
         parsed["confidence"] = float(parsed.get("confidence", 0.5))
+        _role_cache[utterance] = parsed
         return parsed
     except Exception as exc:  # noqa: BLE001 - deliberately broad, this is a soft-fail path
         fallback = _heuristic_role_classification(utterance)
         fallback["reason"] += f" (Groq unavailable: {type(exc).__name__}, used heuristic fallback)"
+        _role_cache[utterance] = fallback
         return fallback
 
 
 def _heuristic_role_classification(utterance: str) -> dict:
-    """Zero-dependency fallback used when Groq is unreachable/unset.
-    Cheap but not useless: interview questions are syntactically distinctive."""
     u = utterance.strip().lower()
     question_starters = ("what", "why", "how", "can you", "could you", "tell me",
                           "walk me through", "describe", "have you", "do you")
@@ -87,6 +96,7 @@ def _heuristic_role_classification(utterance: str) -> dict:
 
 
 def generate_explanation(participant_name: str, signal_summaries: list[str], confidence: float) -> str:
+ 
     if not _api_key():
         return _template_explanation(participant_name, signal_summaries, confidence)
 

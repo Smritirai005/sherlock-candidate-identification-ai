@@ -1,3 +1,5 @@
+
+
 import asyncio
 import json
 from dataclasses import asdict
@@ -5,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
-load_dotenv()  # picks up GROQ_API_KEY / GROQ_MODEL from a .env file if present
+load_dotenv()  
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
@@ -18,6 +20,8 @@ from confidence_engine import ConfidenceEngine
 app = FastAPI(title="Sherlock Candidate Identification")
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
+
+
 invite = build_invite()
 engine = ConfidenceEngine(invite)
 state = MeetingState(
@@ -39,11 +43,11 @@ recent_transcript: list[str] = []  # rolling window, all speakers, for LLM conte
 def _log(msg: str):
     stamp = datetime.utcnow().strftime("%H:%M:%S")
     state.event_log.append(f"[{stamp}] {msg}")
-    state.event_log = state.event_log[-30:]  # keep it bounded
+    state.event_log = state.event_log[-30:] 
 
 
 def _serialize_state() -> dict:
-    """Convert dataclasses -> plain JSON-able dict for the frontend."""
+    
     return {
         "meeting_id": state.meeting_id,
         "invite": {
@@ -109,10 +113,9 @@ def _recompute_and_select():
 
 
 async def _run_meeting_simulation():
-    """Background task: plays scripted events, mirroring what a real
-    Zoom/Meet/Teams webhook integration would push to us."""
+
     _log("Meeting simulation started.")
-    sim = MeetingSimulator(speed_multiplier=6.0)
+    sim = MeetingSimulator(speed_multiplier=2.5)
     async for event_type, payload in sim.events():
         if event_type == "join":
             pid = payload["id"]
@@ -153,7 +156,7 @@ async def _run_meeting_simulation():
 
 @app.on_event("startup")
 async def on_startup():
-    # kick off the simulated meeting as soon as the server boots
+    
     asyncio.create_task(_run_meeting_simulation())
 
 
@@ -164,7 +167,7 @@ async def websocket_endpoint(ws: WebSocket):
     await ws.send_text(json.dumps(_serialize_state()))  # send current state immediately
     try:
         while True:
-            await ws.receive_text()  # we don't expect client->server messages, just keep alive
+            await ws.receive_text()  
     except WebSocketDisconnect:
         if ws in connected_clients:
             connected_clients.remove(ws)

@@ -1,3 +1,4 @@
+
 import asyncio
 from datetime import datetime, timedelta
 from models import Participant, CalendarInvite
@@ -26,6 +27,10 @@ SCRIPT_EVENTS = [
 
 
 def build_invite() -> CalendarInvite:
+    """Note the deliberate trap: the interviewer typed the wrong candidate
+    name into the scheduling tool ('Alexander Johnson' instead of the
+    candidate's actual preferred name), which is exactly the kind of
+    real-world noise Sherlock has to be robust to."""
     return CalendarInvite(
         candidate_name="Alexander Johnson",
         candidate_email="alex.johnson@gmail.com",
@@ -35,8 +40,9 @@ def build_invite() -> CalendarInvite:
 
 
 class MeetingSimulator:
+    
 
-    def __init__(self, speed_multiplier: float = 6.0):
+    def __init__(self, speed_multiplier: float = 2.5):
         self.speed_multiplier = speed_multiplier
 
     async def events(self):
